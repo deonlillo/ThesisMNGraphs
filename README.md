@@ -9,9 +9,12 @@ Relies heavily on Python/NetworkX for graph construction
 * example_graphs.py
 * rhizopogon_graphs_full.py
 * rhizopogon_graphs_full_keystone.py
+* rhizopogon_graphs_full_random.py
 * xeric_mesic_plots_graphs.py
 * xeric_plot_keystone.py
 * mesic_plot_keystone.py
+* xeric_plot_random.py
+* mesic_plot_random.py
 
 ### Unused Files
 * rhizopogon_graphs.py

@@ -2,6 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from netgraph import Graph, InteractiveGraph, EditableGraph
 from networkx.algorithms import approximation
+from random import sample
 
 def create_clique(G, treeNodes):
    if len(treeNodes) == 1:
@@ -211,37 +212,58 @@ for node in G.nodes:
       node_colors.append("#006400") # dark green
 
 nx.draw(G, pos=nx.kamada_kawai_layout(G), node_size=node_sizes, node_color=node_colors, with_labels=True)
-#print(nx.to_latex_raw(G, pos=nx.kamada_kawai_layout(G), node_size=node_sizes, node_color=node_colors, with_labels=True))
 plt.show()
 
-# ---------------------------------------- K-CORE -------------------------------------------------------
+# -------------------------------- RANDOM TREE REMOVAL ------------------------------------------
 
-G_k_core = nx.k_core(G) # core number: 18
+G_k_core = nx.k_core(G)
+num_random_nodes_to_remove = len(G_k_core)
+#print(num_random_nodes_to_remove)
+#print(sample(G.nodes,num_random_nodes_to_remove))
+random_nodes_to_remove = sample(G.nodes,num_random_nodes_to_remove)
+print("\nNodes removed: ", random_nodes_to_remove)
 
-G_k_core_node_sizes = []
-G_k_core_node_colors = []
-for node in G_k_core.nodes:
+rand_nodes_G = nx.Graph()
+for rand_node in random_nodes_to_remove:
+   rand_nodes_G.add_node(rand_node)
+   G.remove_node(rand_node)
+
+node_sizes = []
+node_colors = []
+for node in rand_nodes_G.nodes:
    if tree_cohorts[node] == 1:
-      G_k_core_node_sizes.append(100)
-      G_k_core_node_colors.append("#98FB98") # pale green
+      node_sizes.append(100)
+      node_colors.append("#98FB98") # pale green
    elif tree_cohorts[node] == 2:
-      G_k_core_node_sizes.append(600)
-      G_k_core_node_colors.append("#32CD32") # lime green
+      node_sizes.append(600)
+      node_colors.append("#32CD32") # lime green
    elif tree_cohorts[node] == 3:
-      G_k_core_node_sizes.append(1100)
-      G_k_core_node_colors.append("#228B22") # forest green
+      node_sizes.append(1100)
+      node_colors.append("#228B22") # forest green
    elif tree_cohorts[node] == 4:
-      G_k_core_node_sizes.append(1600)
-      G_k_core_node_colors.append("#006400") # dark green
-nx.draw(G_k_core, pos=nx.kamada_kawai_layout(G_k_core), node_size=G_k_core_node_sizes, node_color=G_k_core_node_colors, with_labels=True)
+      node_sizes.append(1600)
+      node_colors.append("#006400") # dark green
+
+nx.draw(rand_nodes_G, pos=nx.kamada_kawai_layout(rand_nodes_G), node_size=node_sizes, node_color=node_colors, with_labels=True)
 plt.show()
 
-for n in G_k_core.nodes:
-   G.remove_node(n)
+iso_verts = []
+for g_node in G.nodes:
+   if G.degree(g_node) == 0:
+      iso_verts.append(g_node)
+      
+for vert in iso_verts:
+   G.remove_node(vert)
 
-print("\nNEW METRICS AFTER K-CORE PARTITIONING:")
+G_aspt_new = nx.average_shortest_path_length(G)
+for iso_vert in iso_verts:
+   G.add_node(iso_vert)
+
+print("\nGRAPH METRICS AFTER RANDOM TREE REMOVAL:")
+
 G_mnd = calc_mean_node_degree(G)
 print("Mean Node Degree:", G_mnd)
+print("Mean Path Length Between Linked Tree Pairs:", G_aspt_new)
 G_cc = nx.average_clustering(G)
 print("Clustering coefficient:", G_cc)
 G_dc = nx.degree_centrality(G)
@@ -251,54 +273,21 @@ print("Highest eigenvector centrality: Node %d at %5.4f "%(max(G_ec, key=G_ec.ge
 G_bc = nx.betweenness_centrality(G)
 print("Highest betweenness centrality: Node %d at %5.4f "%(max(G_bc, key=G_bc.get), max(G_bc.values())))
 
-new_node_sizes = []
-new_node_colors = []
+node_sizes = []
+node_colors = []
 for node in G.nodes:
    if tree_cohorts[node] == 1:
-      new_node_sizes.append(100)
-      new_node_colors.append("#98FB98") # pale green
+      node_sizes.append(100)
+      node_colors.append("#98FB98") # pale green
    elif tree_cohorts[node] == 2:
-      new_node_sizes.append(600)
-      new_node_colors.append("#32CD32") # lime green
+      node_sizes.append(600)
+      node_colors.append("#32CD32") # lime green
    elif tree_cohorts[node] == 3:
-      new_node_sizes.append(1100)
-      new_node_colors.append("#228B22") # forest green
+      node_sizes.append(1100)
+      node_colors.append("#228B22") # forest green
    elif tree_cohorts[node] == 4:
-      new_node_sizes.append(1600)
-      new_node_colors.append("#006400") # dark green
-nx.draw(G, pos=nx.kamada_kawai_layout(G), node_size=new_node_sizes, node_color=new_node_colors, with_labels=True)
-plt.show()
+      node_sizes.append(1600)
+      node_colors.append("#006400") # dark green
 
-for vert in iso_verts:
-   G.remove_node(vert)
-
-G.remove_node(14)
-G.remove_node(15) # linked to each other separate from main connectivity network
-
-G_aspt = nx.average_shortest_path_length(G)
-print("Mean Path Length Between Linked Tree Pairs:", G_aspt)
-
-
-
-
-
-example_G = nx.Graph()
-create_clique(example_G, vin1trees)
-create_clique(example_G, vin4trees)
-new_node_sizes = []
-new_node_colors = []
-for node in example_G.nodes:
-   if tree_cohorts[node] == 1:
-      new_node_sizes.append(100)
-      new_node_colors.append("#98FB98") # pale green
-   elif tree_cohorts[node] == 2:
-      new_node_sizes.append(600)
-      new_node_colors.append("#32CD32") # lime green
-   elif tree_cohorts[node] == 3:
-      new_node_sizes.append(1100)
-      new_node_colors.append("#228B22") # forest green
-   elif tree_cohorts[node] == 4:
-      new_node_sizes.append(1600)
-      new_node_colors.append("#006400") # dark green
-nx.draw(example_G, pos=nx.kamada_kawai_layout(example_G), node_size=new_node_sizes, node_color=new_node_colors, with_labels=True)
+nx.draw(G, pos=nx.kamada_kawai_layout(G), node_size=node_sizes, node_color=node_colors, with_labels=True)
 plt.show()
